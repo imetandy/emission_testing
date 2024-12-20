@@ -95,7 +95,6 @@ plt.show()
 
 
 # Now add a feature - if the SST rises, Gaiacoin price increases and Endcoin price falls proportionally.
-
 class AMM_SST(AMM):
     def __init__(self, ec_reserve, gc_reserve, freq='daily'):
         super().__init__(ec_reserve, gc_reserve)
@@ -120,9 +119,6 @@ class AMM_SST(AMM):
         self.ec_price = self.ec_price * self.ratio
         return self.ec_price
 
-
-# Example usage
-n_trades = 50  # play about with this number to simulate a number of trades
 
 amm = AMM_SST(1000, 1000)  # initialise the AMM with 1000 Endcoin and 1000 Gaiacoin
 
