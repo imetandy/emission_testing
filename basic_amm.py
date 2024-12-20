@@ -18,7 +18,7 @@ class AMM:
 
     def get_gaiacoin_price(self):
         """Returns the price of Gaiacoin in terms of Endcoin."""
-        self.gc_price = self.ec_reserve / self.gc_reserve
+        self.gc_price = 1 / self.ec_price
         return self.gc_price
 
     def get_endcoin_reserve(self):
@@ -98,31 +98,18 @@ plt.show()
 class AMM_SST(AMM):
     def __init__(self, ec_reserve, gc_reserve, freq='daily'):
         super().__init__(ec_reserve, gc_reserve)
-        self.daily_sst = None
         self.freq = freq # This is a dead end for now
+        self.daily_sst = 25
         self._base_sst = 20.8
-        self.set_sst() # Set the daily SST
-
-    def set_sst(self):
-        # Implement logic to get the daily SST
-        self.daily_sst = 21.5
         
     def update_ratio(self):
         self.ratio = self.daily_sst / self._base_sst
 
-    # def update_endcoin_price(self):
-    #     """
-    #     Update the Endcoin price in proportion to the change in SST from the base.
-    #     """
-    #     self.ec_price = self.ec_price * (1 - self.ratio)
-    #     return self.ec_price
-    # 
-    # def update_gaiacoin_price(self):
-    #     """
-    #     Update Gaicoin price using the fact that it's inversely proportional to Endcoin price
-    #     """
-    #     self.gc_price = (self.k / self.ec_price)
-    #     return self.gc_price
+    def get_endcoin_price_ratio(self):
+        """Returns the price of Endcoin in terms of Gaiacoin."""
+        self.ec_price = self.gc_reserve / self.ec_reserve
+        self.ec_price = self.ec_price * self.ratio
+        return self.ec_price
 
 
 # Example usage
@@ -141,7 +128,7 @@ for i, trade in enumerate(trades):
     ec_prices.append(amm.get_endcoin_price())
     gc_prices.append(amm.get_gaiacoin_price())
 
-    ec_with_update_prices.append(amm.get_endcoin_price())
+    ec_with_update_prices.append(amm.get_endcoin_price_ratio())
     gc_with_update_prices.append(amm.get_gaiacoin_price())
 
     coin_type = 'ec' if np.random.rand() > 0.5 else 'gc'
@@ -152,25 +139,15 @@ for i, trade in enumerate(trades):
 
     # Here i'm saying there is 20 trades a day happening, and the prices get updated after that trade
     if i > 0 and i % 20 == 0:
+        print('initial ratio:', amm.ratio)
         amm.update_ratio() # Update the ratio based on the new SST
-        
-        # print('New day, updating coins based on SST')
-        # updated_ec_price = amm.update_endcoin_price()
-        # updated_gc_price = amm.update_gaiacoin_price()
-        # 
-        # print('Endcoin price updated to:', updated_ec_price, 'from:', ec_prices[-1])
-        # print('Gaiacoin price updated to:', updated_gc_price, 'from:', gc_prices[-1])
-        # 
-        # ec_with_update_prices.pop() # remove the last item if there's an update. We'll use the updated value instead
-        # gc_with_update_prices.pop()
-        # 
-        # ec_with_update_prices.append(updated_ec_price)
-        # gc_with_update_prices.append(updated_gc_price)
+        print('New ratio:', amm.ratio)
+
 
 plt.plot(ec_prices, label='Endcoin Price')
-# plt.plot(gc_prices, label='Gaiacoin Price')
+plt.plot(gc_prices, label='Gaiacoin Price')
 plt.plot(ec_with_update_prices, label='Endcoin Price with SST Update', color='red', ls='--')
-# plt.plot(gc_with_update_prices, label='Gaiacoin Price with SST Update', color='green', ls='--')
+plt.plot(gc_with_update_prices, label='Gaiacoin Price with SST Update', color='green', ls='--')
 plt.xlabel('Trade Number')
 plt.ylabel('Price')
 plt.legend()
