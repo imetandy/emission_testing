@@ -156,13 +156,13 @@ plt.plot(ec_prices, label="Endcoin Price")
 plt.plot(gc_prices, label="Gaiacoin Price")
 plt.plot(
     ec_with_update_prices,
-    label="Endcoin Price with SST Update at 20, 40 trades",
+    label="Endcoin Price with SST Update every 20 trades",
     color="blue",
     ls="--",
 )
 plt.plot(
     gc_with_update_prices,
-    label="Gaiacoin Price with SST Update at 20, 40 trades",
+    label="Gaiacoin Price with SST Update every 20 trades",
     color="orange",
     ls="--",
 )
