@@ -17,7 +17,8 @@ class AMM:
         return self.ec_price
 
     def get_gaiacoin_price(self):
-        """Returns the price of Gaiacoin in terms of Endcoin."""
+        """Returns the price of Gaiacoin in terms of Endcoin.
+        Since Gaiacoin is inversely proportional to Endcoin, we use 1/ec_price."""
         self.gc_price = 1 / self.ec_price
         return self.gc_price
 
@@ -98,12 +99,20 @@ plt.show()
 class AMM_SST(AMM):
     def __init__(self, ec_reserve, gc_reserve, freq='daily'):
         super().__init__(ec_reserve, gc_reserve)
-        self.freq = freq # This is a dead end for now
-        self.daily_sst = 25
+        self.daily_sst = None
+        self.freq = freq  # This is a dead end for now
         self._base_sst = 20.8
-        
+
+        self.set_daily_sst()
+
     def update_ratio(self):
-        self.ratio = self.daily_sst / self._base_sst
+        self.ratio = self._base_sst / self.daily_sst
+
+    def set_daily_sst(self):
+        # implement logic to get sst here
+
+        # set a random value between 20 and 22
+        self.daily_sst = np.random.uniform(20, 22)
 
     def get_endcoin_price_ratio(self):
         """Returns the price of Endcoin in terms of Gaiacoin."""
@@ -113,7 +122,7 @@ class AMM_SST(AMM):
 
 
 # Example usage
-n_trades = 25  # play about with this number to simulate a number of trades
+n_trades = 50  # play about with this number to simulate a number of trades
 
 amm = AMM_SST(1000, 1000)  # initialise the AMM with 1000 Endcoin and 1000 Gaiacoin
 
@@ -123,6 +132,8 @@ ec_prices = []
 ec_with_update_prices = []
 gc_prices = []
 gc_with_update_prices = []
+
+temperatures = []
 
 for i, trade in enumerate(trades):
     ec_prices.append(amm.get_endcoin_price())
@@ -139,17 +150,19 @@ for i, trade in enumerate(trades):
 
     # Here i'm saying there is 20 trades a day happening, and the prices get updated after that trade
     if i > 0 and i % 20 == 0:
-        print('initial ratio:', amm.ratio)
-        amm.update_ratio() # Update the ratio based on the new SST
-        print('New ratio:', amm.ratio)
+        temperatures.append(amm.daily_sst)
+        amm.update_ratio()  # Update the ratio based on the new SST
+        amm.set_daily_sst()
 
+temp_string = ", ".join([str(x) for x in temperatures])
 
 plt.plot(ec_prices, label='Endcoin Price')
 plt.plot(gc_prices, label='Gaiacoin Price')
-plt.plot(ec_with_update_prices, label='Endcoin Price with SST Update', color='red', ls='--')
-plt.plot(gc_with_update_prices, label='Gaiacoin Price with SST Update', color='green', ls='--')
+plt.plot(ec_with_update_prices, label='Endcoin Price with SST Update at 20, 40 trades', color='blue', ls='--')
+plt.plot(gc_with_update_prices, label='Gaiacoin Price with SST Update at 20, 40 trades', color='orange', ls='--')
 plt.xlabel('Trade Number')
 plt.ylabel('Price')
+plt.title(f'SSTs: temperatures: {temp_string} ')
 plt.legend()
 
 plt.tight_layout()
