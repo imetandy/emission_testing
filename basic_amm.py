@@ -6,7 +6,7 @@ class AMM:
     def __init__(self, ec_reserve, gc_reserve):
         self.ec_reserve = ec_reserve  # Amount of Endcoin in the pool
         self.gc_reserve = gc_reserve  # Amount of Gaiacoin in the pool
-        self.k = ec_reserve * gc_reserve * 20.8  # Constant product of reserves * base SST
+        self.k = ec_reserve * gc_reserve  # Constant product of reserves * base SST
 
     def get_endcoin_price(self):
         """Returns the price of Endcoin in terms of Gaiacoin."""
@@ -26,23 +26,19 @@ class AMM:
 
     def trade(self, input_token, token_type='ec'):
         """
-        Simulate a trade. If token_type is 'A', it means the user is providing Endcoin to buy Gaiacoin.
-        If token_type is 'B', it means the user is providing Gaiacoin to buy Endcoin.
+        Simulate a trade. If token_type is 'ec', it means the user is providing Endcoin to buy Gaiacoin.
+        If token_type is 'gc', it means the user is providing Gaiacoin to buy Endcoin.
         """
         if token_type == 'ec':
             new_ec_reserve = self.ec_reserve + input_token
             new_gc_reserve = self.k / new_ec_reserve
-            output_gc = self.gc_reserve - new_gc_reserve
             self.ec_reserve = new_ec_reserve
             self.gc_reserve = new_gc_reserve
         elif token_type == 'gc':
             new_gc_reserve = self.gc_reserve + input_token
             new_ec_reserve = self.k / new_gc_reserve
-            output_ec = self.ec_reserve - new_ec_reserve
             self.gc_reserve = new_gc_reserve
             self.ec_reserve = new_ec_reserve
-
-        return output_gc if token_type == 'ec' else output_ec
 
 
 def simulate_trades(amm, trades, token_type='ec'):
@@ -54,25 +50,11 @@ def simulate_trades(amm, trades, token_type='ec'):
     return prices
 
 
-# # Initialize the AMM with a starting reserve of 1000 Endcoin and 1000 Gaiacoin
-# amm = AMM(1000, 1000)
-#
-# # Simulate 100 trades (Endcoin trades)
-# trades = np.linspace(1, 100, 100)  # Increasing amounts of Endcoin provided by the user
-# prices = simulate_trades(amm, trades, 'ec')
-#
-# # Plot the results
-# plt.plot(trades, prices)
-# plt.title("Price Impact of Trades in AMM (Endcoin to Gaiacoin)")
-# plt.xlabel("Endcoin Trade Size")
-# plt.ylabel("Price of Endcoin in Gaiacoin")
-# plt.show()
-
 coin_map = {'ec': 'Endcoin', 'gc': 'Gaiacoin'}
 
-n_trades = 100 # play about with this number to simulate a number of trades
+n_trades = 100  # play about with this number to simulate a number of trades
 
-amm = AMM(1000, 1000) # initialise the AMM with 1000 Endcoin and 1000 Gaiacoin
+amm = AMM(1000, 1000)  # initialise the AMM with 1000 Endcoin and 1000 Gaiacoin
 
 # Simulate 1000 random trades
 trades = np.random.randint(1, 100, n_trades)  # Random trade sizes
