@@ -4,17 +4,21 @@ import matplotlib.pyplot as plt
 
 class AMM:
     def __init__(self, ec_reserve, gc_reserve):
+        self.ec_price = None
+        self.gc_price = None
         self.ec_reserve = ec_reserve  # Amount of Endcoin in the pool
         self.gc_reserve = gc_reserve  # Amount of Gaiacoin in the pool
-        self.k = ec_reserve * gc_reserve  # Constant product of reserves * base SST
+        self.k = ec_reserve * gc_reserve  # Constant product of reserves
 
     def get_endcoin_price(self):
         """Returns the price of Endcoin in terms of Gaiacoin."""
-        return self.gc_reserve / self.ec_reserve
+        self.ec_price = self.gc_reserve / self.ec_reserve
+        return self.ec_price
 
     def get_gaiacoin_price(self):
         """Returns the price of Gaiacoin in terms of Endcoin."""
-        return self.ec_reserve / self.gc_reserve
+        self.gc_price = self.ec_reserve / self.gc_reserve
+        return self.gc_price
 
     def get_endcoin_reserve(self):
         """Returns the amount of Endcoin in the pool."""
@@ -41,23 +45,13 @@ class AMM:
             self.ec_reserve = new_ec_reserve
 
 
-def simulate_trades(amm, trades, token_type='ec'):
-    prices = []
-    for trade in trades:
-        amm.trade(trade, token_type)
-        prices.append(amm.get_price())
-
-    return prices
-
-
 coin_map = {'ec': 'Endcoin', 'gc': 'Gaiacoin'}
 
 n_trades = 100  # play about with this number to simulate a number of trades
 
 amm = AMM(1000, 1000)  # initialise the AMM with 1000 Endcoin and 1000 Gaiacoin
 
-# Simulate 1000 random trades
-trades = np.random.randint(1, 100, n_trades)  # Random trade sizes
+trades = np.random.randint(1, 100, n_trades)  # Random trade volumes
 coin_types = np.random.choice(['ec', 'gc'], n_trades)  # Random coin types
 
 ec_prices = []
@@ -92,6 +86,88 @@ ax[1].legend()
 plt.tight_layout()
 plt.show()
 
+
 # As the Endcoin Reserve decreases, the value of Endcoin increases.
 # As the Gaiacoin Reserve increases, the value of Gaiacoin decreases.
 # At the start there is more Endcoin and Less Gaiacoin, so the price of Endcoin is lower and the price of Gaiacoin is higher.
+
+
+# Now add a feature - if the SST rises, Gaiacoin price increases and Endcoin price falls proportionally.
+
+class AMM_SST(AMM):
+    def __init__(self, ec_reserve, gc_reserve, freq='daily'):
+        super().__init__(ec_reserve, gc_reserve)
+        self.freq = freq # This is a dead end for now
+        self._base_sst = 20.8
+        self.set_sst() # Set the daily SST
+        self.ratio = self.daily_sst / self._base_sst # ratio of daily sst: base sst
+
+    def set_sst(self):
+        # Implement logic to get the daily SST
+        self.daily_sst = 21.5
+
+    def update_endcoin_price(self):
+        """
+        Update the Endcoin price in proportion to the change in SST from the base.
+        """
+        self.ec_price = self.ec_price * self.ratio
+        return self.ec_price
+
+    def update_gaiacoin_price(self):
+        """
+        Update Gaicoin price using the fact that it's inversely proportional to Endcoin price
+        """
+        self.gc_price = (self.k / self.ec_price)
+        return self.gc_price
+
+
+# Example usage
+n_trades = 25  # play about with this number to simulate a number of trades
+
+amm = AMM_SST(1000, 1000)  # initialise the AMM with 1000 Endcoin and 1000 Gaiacoin
+
+trades = np.random.randint(1, 100, n_trades)  # Random trade volumes
+
+ec_prices = []
+ec_with_update_prices = []
+gc_prices = []
+gc_with_update_prices = []
+
+for i, trade in enumerate(trades):
+    ec_prices.append(amm.get_endcoin_price())
+    gc_prices.append(amm.get_gaiacoin_price())
+
+    ec_with_update_prices.append(amm.get_endcoin_price())
+    gc_with_update_prices.append(amm.get_gaiacoin_price())
+
+    coin_type = 'ec' if np.random.rand() > 0.5 else 'gc'
+    other_coin = 'gc' if coin_type == 'ec' else 'ec'
+
+    print(f'User is trading {trade} {coin_map[coin_type]} for {coin_map[other_coin]}')
+    amm.trade(trade, coin_type)  # make the trade
+
+    # Here i'm saying there is 20 trades a day happening, and the prices get updated after that trade
+    if i > 0 and i % 20 == 0:
+        print('New day, updating coins based on SST')
+        updated_ec_price = amm.update_endcoin_price()
+        updated_gc_price = amm.update_gaiacoin_price()
+
+        print('Endcoin price updated to:', updated_ec_price, 'from:', ec_prices[-1])
+        print('Gaiacoin price updated to:', updated_gc_price, 'from:', gc_prices[-1])
+
+        ec_with_update_prices.pop() # remove the last item if there's an update. We'll use the updated value instead
+        gc_with_update_prices.pop()
+
+        ec_with_update_prices.append(updated_ec_price)
+        gc_with_update_prices.append(updated_gc_price)
+
+plt.plot(ec_prices, label='Endcoin Price')
+# plt.plot(gc_prices, label='Gaiacoin Price')
+plt.plot(ec_with_update_prices, label='Endcoin Price with SST Update', color='red', ls='--')
+# plt.plot(gc_with_update_prices, label='Gaiacoin Price with SST Update', color='green', ls='--')
+plt.xlabel('Trade Number')
+plt.ylabel('Price')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
