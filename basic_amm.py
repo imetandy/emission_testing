@@ -30,31 +30,31 @@ class AMM:
         """Returns the amount of Gaiacoin in the pool."""
         return self.gc_reserve
 
-    def trade(self, input_token, token_type='ec'):
+    def trade(self, input_token, token_type="ec"):
         """
         Simulate a trade. If token_type is 'ec', it means the user is providing Endcoin to buy Gaiacoin.
         If token_type is 'gc', it means the user is providing Gaiacoin to buy Endcoin.
         """
-        if token_type == 'ec':
+        if token_type == "ec":
             new_ec_reserve = self.ec_reserve + input_token
             new_gc_reserve = self.k / new_ec_reserve
             self.ec_reserve = new_ec_reserve
             self.gc_reserve = new_gc_reserve
-        elif token_type == 'gc':
+        elif token_type == "gc":
             new_gc_reserve = self.gc_reserve + input_token
             new_ec_reserve = self.k / new_gc_reserve
             self.gc_reserve = new_gc_reserve
             self.ec_reserve = new_ec_reserve
 
 
-coin_map = {'ec': 'Endcoin', 'gc': 'Gaiacoin'}
+coin_map = {"ec": "Endcoin", "gc": "Gaiacoin"}
 
 n_trades = 100  # play about with this number to simulate a number of trades
 
 amm = AMM(1000, 1000)  # initialise the AMM with 1000 Endcoin and 1000 Gaiacoin
 
 trades = np.random.randint(1, 100, n_trades)  # Random trade volumes
-coin_types = np.random.choice(['ec', 'gc'], n_trades)  # Random coin types
+coin_types = np.random.choice(["ec", "gc"], n_trades)  # Random coin types
 
 ec_prices = []
 ec_reserve = []
@@ -67,22 +67,22 @@ for trade, coin_type in zip(trades, coin_types):
     gc_prices.append(amm.get_gaiacoin_price())
     gc_reserve.append(amm.get_gaiacoin_reserve())
 
-    other_coin = 'gc' if coin_type == 'ec' else 'ec'
+    other_coin = "gc" if coin_type == "ec" else "ec"
 
-    print(f'User is trading {trade} {coin_map[coin_type]} for {coin_map[other_coin]}')
+    print(f"User is trading {trade} {coin_map[coin_type]} for {coin_map[other_coin]}")
     amm.trade(trade, coin_type)  # make the trade
 
 fig, ax = plt.subplots(2, 1, figsize=(10, 10))
-ax[0].plot(ec_prices, label='Endcoin Price')
-ax[0].plot(gc_prices, label='Gaiacoin Price')
-ax[0].set_xlabel('Trade Number')
-ax[0].set_ylabel('Price')
+ax[0].plot(ec_prices, label="Endcoin Price")
+ax[0].plot(gc_prices, label="Gaiacoin Price")
+ax[0].set_xlabel("Trade Number")
+ax[0].set_ylabel("Price")
 ax[0].legend()
 
-ax[1].plot(ec_reserve, label='Endcoin Reserve')
-ax[1].plot(gc_reserve, label='Gaiacoin Reserve')
-ax[1].set_xlabel('Trade Number')
-ax[1].set_ylabel('Reserve')
+ax[1].plot(ec_reserve, label="Endcoin Reserve")
+ax[1].plot(gc_reserve, label="Gaiacoin Reserve")
+ax[1].set_xlabel("Trade Number")
+ax[1].set_ylabel("Reserve")
 ax[1].legend()
 
 plt.tight_layout()
@@ -96,7 +96,7 @@ plt.show()
 
 # Now add a feature - if the SST rises, Gaiacoin price increases and Endcoin price falls proportionally.
 class AMM_SST(AMM):
-    def __init__(self, ec_reserve, gc_reserve, freq='daily'):
+    def __init__(self, ec_reserve, gc_reserve, freq="daily"):
         super().__init__(ec_reserve, gc_reserve)
         self.daily_sst = None
         self.freq = freq  # This is a dead end for now
@@ -138,10 +138,10 @@ for i, trade in enumerate(trades):
     ec_with_update_prices.append(amm.get_endcoin_price_ratio())
     gc_with_update_prices.append(amm.get_gaiacoin_price())
 
-    coin_type = 'ec' if np.random.rand() > 0.5 else 'gc'
-    other_coin = 'gc' if coin_type == 'ec' else 'ec'
+    coin_type = "ec" if np.random.rand() > 0.5 else "gc"
+    other_coin = "gc" if coin_type == "ec" else "ec"
 
-    print(f'User is trading {trade} {coin_map[coin_type]} for {coin_map[other_coin]}')
+    print(f"User is trading {trade} {coin_map[coin_type]} for {coin_map[other_coin]}")
     amm.trade(trade, coin_type)  # make the trade
 
     # Here i'm saying there is 20 trades a day happening, and the prices get updated after that trade
@@ -152,13 +152,23 @@ for i, trade in enumerate(trades):
 
 temp_string = ", ".join([str(x) for x in temperatures])
 
-plt.plot(ec_prices, label='Endcoin Price')
-plt.plot(gc_prices, label='Gaiacoin Price')
-plt.plot(ec_with_update_prices, label='Endcoin Price with SST Update at 20, 40 trades', color='blue', ls='--')
-plt.plot(gc_with_update_prices, label='Gaiacoin Price with SST Update at 20, 40 trades', color='orange', ls='--')
-plt.xlabel('Trade Number')
-plt.ylabel('Price')
-plt.title(f'SSTs: temperatures: {temp_string} ')
+plt.plot(ec_prices, label="Endcoin Price")
+plt.plot(gc_prices, label="Gaiacoin Price")
+plt.plot(
+    ec_with_update_prices,
+    label="Endcoin Price with SST Update at 20, 40 trades",
+    color="blue",
+    ls="--",
+)
+plt.plot(
+    gc_with_update_prices,
+    label="Gaiacoin Price with SST Update at 20, 40 trades",
+    color="orange",
+    ls="--",
+)
+plt.xlabel("Trade Number")
+plt.ylabel("Price")
+plt.title(f"SSTs: temperatures: {temp_string} ")
 plt.legend()
 
 plt.tight_layout()
