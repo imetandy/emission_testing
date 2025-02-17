@@ -42,6 +42,7 @@ for trader in traders:
 
 print('Trader 0 EC balance after emission:', traders[0].ec_balance)
 print('Trader 0 GC balance after emission:', traders[0].gc_balance)
+print('Trader 0 SOL balance after emission:', traders[0].sol_balance)
 
 print('Swapping 100 EC for GC in ec_gc_pool')
 
@@ -52,3 +53,4 @@ traders[0].swap_tokens(pool=ec_gc_pool,
 
 print('Trader 0 EC balance after swap:', traders[0].ec_balance)
 print('Trader 0 GC balance after swap:', traders[0].gc_balance)
+print('Trader 0 SOL balance after swap:', traders[0].sol_balance)
