@@ -2,7 +2,8 @@ import uuid
 from emitter import Emitter
 from trader import Trader
 from pool import Pool
-from climate_fund import ClimateFund
+from climate_fund import ClimateFund 
+import random 
 
 # Create EC <-> SOL, GC <-> SOL and EC <-> GC pools
 ec_gc_pool = Pool(pool_name='pool1', tokenA='EC', tokenB='GC', pool_ratio=2/3, fee=0)
@@ -14,9 +15,9 @@ emitter = Emitter()
 
 traders = [Trader(id=uuid.uuid4(),
                 contributer='Y',
-                ec_balance=1000,
-                gc_balance=1000,
-                sol_balance=1000)]
+                ec_balance=random.randint(900, 1000),
+                gc_balance=random.randint(900, 1000),
+                sol_balance=1000) for _ in range(5)]
 
 daily_ec, daily_gc = emitter.emit()
 print('Daily EC emission:', daily_ec)
@@ -40,17 +41,17 @@ for trader in traders:
     trader.ec_balance += daily_ec_per_trader
     trader.gc_balance += daily_gc_per_trader
 
-print('Trader 0 EC balance after emission:', traders[0].ec_balance)
-print('Trader 0 GC balance after emission:', traders[0].gc_balance)
-print('Trader 0 SOL balance after emission:', traders[0].sol_balance)
+    print('Trader', trader.id, 'EC balance after emission:', trader.ec_balance)
+    print('Trader', trader.id, 'GC balance after emission:', trader.gc_balance)
+    print('Trader', trader.id, 'SOL balance after emission:', trader.sol_balance)
 
 print('Swapping 100 EC for GC in ec_gc_pool')
 
-traders[0].swap_tokens(pool=ec_gc_pool,
+for trader in traders:
+    trader.swap_tokens(pool=ec_gc_pool,
                        token_in='EC',
                        token_out='GC',
                        amount_in=100)
-
-print('Trader 0 EC balance after swap:', traders[0].ec_balance)
-print('Trader 0 GC balance after swap:', traders[0].gc_balance)
-print('Trader 0 SOL balance after swap:', traders[0].sol_balance)
+    print('Trader', trader.id, 'EC balance after swap:', trader.ec_balance)
+    print('Trader', trader.id, 'GC balance after swap:', trader.gc_balance)
+    print('Trader', trader.id, 'SOL balance after swap:', trader.sol_balance)
